@@ -1,0 +1,179 @@
+copy_files
+###
+extensions/ioty_pupremote.py
+##
+extensions/ioty_pupremote.py
+###
+customBlocks/i2c/i2c_read_bytes.json
+##
+customBlocks/i2c/i2c_read_bytes.json
+###
+customBlocks/pupremote/pupremote_add_command.json
+##
+customBlocks/pupremote/pupremote_add_command.json
+###
+customBlocks/pupremote/pupremote_init.json
+##
+customBlocks/pupremote/pupremote_init.json
+###
+customBlocks/pupremote/pupremote_process.json
+##
+customBlocks/pupremote/pupremote_process.json
+####
+customBlocks/i2c/i2c_init.json
+##
+insert_after
+###
+         ,
+        [
+          "4 (scl), 5\u00A0(sda)",
+          "2"
+        ]
+##
+        [
+          "25 (scl), 26\u00A0(sda)",
+          "1"
+        ]
+####
+/js/msg.js
+##
+insert_before
+###
+'#blk-i2c_bytes#': {
+    en: '# bytes',
+  },
+  '#blk-pup_init_sensor#':{
+    en:'PUPRemote with sensor id',
+  },
+  '#blk-pup_add_command#': {
+    en: ' PUPRemote add_command function',
+  },
+  '#blk-pup_process#': {
+    en: "PUPRemote process",
+  },
+##
+'#blk-pup_tohubfmt#':{
+    en:'from hub format'
+  },
+####
+js/extensions.js
+##
+insert_before
+###
+{
+    id: 'ioty_pupremote',
+    name: 'PUPRemote (Lego)',
+    files: [
+      ['ioty_pupremote.py', 'extensions/ioty_pupremote.py?v=aabaaaaa'],
+    ],
+    description:
+      '<p>' +
+        'PUPRemote extension for comunication with PyBricks Lego Robot.' +
+      '</p>'
+  },
+##
+{
+    id: 'ioty_neopixel',
+####
+toolbox.xml
+##
+insert_before
+###
+<block type="i2c_read_bytes">
+<value name="address">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+</value>
+<value name="bytes">
+  <shadow type="math_number">
+    <field name="NUM">0</field>
+  </shadow>
+</value>
+</block>
+##
+</category>
+<category name="SPI"
+####
+js/ioty_generator.js
+##
+insert_before
+###
+Blockly.Python['pupremote_init'] = self.pupremote_init;
+Blockly.Python['pupremote_add_command'] = self.pupremote_add_command;
+Blockly.Python['pupremote_process'] = self.pupremote_process;
+##
+Blockly.Python['neopixel_init'] = self.neopixel_init;
+###
+Blockly.Python['i2c_read_bytes'] = self.i2c_read_bytes;
+##
+Blockly.Python.addReservedWords('i2c');
+###
+this.i2c_read_bytes = function(block) {
+
+    var address = Blockly.Python.valueToCode(block, 'address', Blockly.Python.ORDER_NONE);
+    var nr_bytes = Blockly.Python.valueToCode(block, 'bytes', Blockly.Python.ORDER_NONE);
+
+    var code = '[i for i in i2c.readfrom(' + address + ', ' + nr_bytes +')]';
+
+    return [code, Blockly.Python.ORDER_ATOMIC];
+  };
+
+##
+this.date_time_get = function(block) {
+    self.imports['machine'] = 'import machine';
+###
+this.neopixel_init = function(block) {
+##
+this.pupremote_init = function(block) {
+    self.imports['pupremote'] = 'import ioty_pupremote as pupremote';
+
+    var sensor_id = Blockly.Python.valueToCode(block, 'sensor_id', Blockly.Python.ORDER_ATOMIC);
+
+    var code = 'pupremote.init(sensor_id=' + sensor_id + ')\n';
+
+    return code;
+  };
+
+  this.pupremote_add_command = function(block) {
+    //self.imports['pupremote'] = 'import ioty_pupremote as pupremote';
+
+    var pup_function = Blockly.Python.valueToCode(block, 'pup_function', Blockly.Python.ORDER_ATOMIC);
+    var to_hub_fmt = Blockly.Python.valueToCode(block, 'to_hub_fmt', Blockly.Python.ORDER_ATOMIC);
+   // var from_hub_function = Blockly.Python.valueToCode(block, 'to_hub_function', Blockly.Python.ORDER_ATOMIC);
+
+    //var from_hub_function = function_call.replace(/ */,'').replace(/\(.*\n/, '');
+
+    var from_hub_fmt = Blockly.Python.valueToCode(block, 'from_hub_fmt', Blockly.Python.ORDER_ATOMIC);
+    // var pup_function_field = block.getField('to_hub_fmt');
+    //var pup_list = block.inputList[0];
+
+    // if (pup_function_field) {// && pup_function_field.getType() === 'field_procdef') {
+    //    var isprocedure = 'is function';
+    // } else {
+    //    var isprocedure="does not exist or not function";
+    // }
+    // remove arenthesis around function
+    pup_function = pup_function.slice(1,-1)
+    //remove any argumnt
+    pup_function = pup_function.replace(/\(.*\)/,"");
+    if (from_hub_fmt.length==0) {
+      var code = 'pupremote.add_command("' + pup_function + '", to_hub_fmt='+to_hub_fmt+')\n';
+    } else {
+    var code = 'pupremote.add_command("' + pup_function + '", to_hub_fmt='+to_hub_fmt+', from_hub_fmt='+from_hub_fmt+')\n';
+    //var code = 'pupremote.add_commmand(' + to_function.replace('()','').slice(1,-1) + ', to_hub_fmt='+to_hub_fmt+', from_hub_fmt='+from_hub_fmt+')\n';
+    }
+    return code;
+  };
+
+  this.pupremote_process = function(block) {
+    //self.imports['pupremote'] = 'import ioty_pupremote as pupremote';
+
+    //var sensor_id = Blockly.Python.valueToCode(block, 'sensor_id', Blockly.Python.ORDER_ATOMIC);
+
+    let code = 'pupremote.process()\n';
+
+    return code;
+  };
+
+
