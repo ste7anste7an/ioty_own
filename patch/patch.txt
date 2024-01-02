@@ -1,5 +1,9 @@
 copy_files
 ###
+.htaccess
+##
+.htaccess
+###
 extensions/ioty_pupremote.py
 ##
 extensions/ioty_pupremote.py
@@ -22,28 +26,22 @@ customBlocks/pupremote/pupremote_process.json
 ####
 customBlocks/i2c/i2c_init.json
 ##
-insert_after
+re_insert_after
 ###
-         ,
+,
         [
           "4 (scl), 5\u00A0(sda)",
           "2"
         ]
 ##
-        [
-          "25 (scl), 26\u00A0(sda)",
-          "1"
-        ]
+\[\s+"25 \(scl\), 26.*\(sda\)",\s+"1"\s+]
 ####
-/js/msg.js
+js/msg.js
 ##
-insert_before
+re_insert_before
 ###
-'#blk-i2c_bytes#': {
-    en: '# bytes',
-  },
-  '#blk-pup_init_sensor#':{
-    en:'PUPRemote with sensor id',
+'#blk-pup_init_sensor#': {
+    en: 'PUPRemote init sensor',
   },
   '#blk-pup_add_command#': {
     en: ' PUPRemote add_command function',
@@ -51,14 +49,19 @@ insert_before
   '#blk-pup_process#': {
     en: "PUPRemote process",
   },
-##
-'#blk-pup_tohubfmt#':{
+  '#blk-pup_tohubfmt#':{
     en:'from hub format'
   },
+  '#blk-pup_fromhubfmt#':{
+    en:'to hub format'
+  },
+  
+##
+'#main-blocks#': {
 ####
 js/extensions.js
 ##
-insert_before
+re_insert_before
 ###
 {
     id: 'ioty_pupremote',
@@ -70,44 +73,86 @@ insert_before
       '<p>' +
         'PUPRemote extension for comunication with PyBricks Lego Robot.' +
       '</p>'
-  },
+   },
+   
 ##
-{
-    id: 'ioty_neopixel',
+{\s+id: 'ioty_neopixel',
 ####
 toolbox.xml
 ##
-insert_before
+re_insert_after
 ###
-<block type="i2c_read_bytes">
-<value name="address">
-  <shadow type="math_number">
-    <field name="NUM">0</field>
-  </shadow>
-</value>
-<value name="bytes">
-  <shadow type="math_number">
-    <field name="NUM">0</field>
-  </shadow>
-</value>
-</block>
+ 
+ <category toolboxitemid="ioty_pupremote" name="PUPRemote" colour="#5b67a5" hidden="true">
+    <block type="pupremote_init">
+      <value name="sensor_id">
+        <shadow type="math_number">
+          <field name="NUM">61</field>
+        </shadow>
+      </value>
+    </block>
+
+    <block type="pupremote_add_command">
+      <value name="to_hub_fmt">
+       <shadow type="text">
+          <field name="TEXT">BB</field>
+        </shadow>
+      </value>
+
+    </block>
+    <block type="pupremote_process"></block>
+   </category>
 ##
-</category>
-<category name="SPI"
+<block type="bmp_image_get_pixel_raw"></block>\s+</category>
+####
+toolbox.xml
+##
+re_insert_before
+###
+  <block type="i2c_read_bytes">
+      <value name="address">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+      </value>
+      <value name="bytes">
+        <shadow type="math_number">
+          <field name="NUM">0</field>
+        </shadow>
+      </value>
+    </block>
+  
+##
+</category>\s+<category name="SPI"
 ####
 js/ioty_generator.js
 ##
-insert_before
+re_insert_after
+###
+
+    if (id==2) {
+      var code = 'i2c = machine.I2C( 1, scl=machine.Pin(4), sda=machine.Pin(5) , freq=' + freq + ')\n';
+    }
+
+##
+var code = 'i2c = machine.I2C\(' \+ id \+ ', freq=' \+ freq \+ '\)..';
+####
+js/ioty_generator.js
+##
+re_insert_before
 ###
 Blockly.Python['pupremote_init'] = self.pupremote_init;
-Blockly.Python['pupremote_add_command'] = self.pupremote_add_command;
-Blockly.Python['pupremote_process'] = self.pupremote_process;
+    Blockly.Python['pupremote_add_command'] = self.pupremote_add_command;
+    Blockly.Python['pupremote_process'] = self.pupremote_process;
+
+    
 ##
-Blockly.Python['neopixel_init'] = self.neopixel_init;
+Blockly.Python\['neopixel_init'\] = self.neopixel_init;
 ###
 Blockly.Python['i2c_read_bytes'] = self.i2c_read_bytes;
+   
 ##
-Blockly.Python.addReservedWords('i2c');
+Blockly.Python.addReservedWords\('i2c'\);
 ###
 this.i2c_read_bytes = function(block) {
 
@@ -118,13 +163,10 @@ this.i2c_read_bytes = function(block) {
 
     return [code, Blockly.Python.ORDER_ATOMIC];
   };
-
+  
 ##
-this.date_time_get = function(block) {
-    self.imports['machine'] = 'import machine';
+this.date_time_get = function\(block\) {\s+self.imports\['machine'\] = 'import machine';
 ###
-this.neopixel_init = function(block) {
-##
 this.pupremote_init = function(block) {
     self.imports['pupremote'] = 'import ioty_pupremote as pupremote';
 
@@ -176,4 +218,6 @@ this.pupremote_init = function(block) {
     return code;
   };
 
-
+  
+##
+this.neopixel_init = function\(block\) {

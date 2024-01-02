@@ -1,6 +1,6 @@
 {
     "type": "i2c_read_bytes",
-    "message0": "#blk-i2c_readfrom_addr# %1 #blk-i2c_bytes# %2",
+    "message0": "#blk-i2c_readfrom_addr# %1 #blk-number_of_bytes# %2",
     "args0": [
       {
         "type": "input_value",
